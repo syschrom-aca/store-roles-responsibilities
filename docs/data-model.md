@@ -40,7 +40,7 @@ interface PersonRole {
 
 ## Store List Source
 
-Źródło:
+Source:
 MS_Form.pdf
 
 Store Name:
@@ -48,3 +48,22 @@ Store Name:
 - 417 Nissan
 - Acura of Hamilton
 ...
+
+
+components/forms/
+├── PersonRoleList.tsx
+└── StringList.tsx
+
+features/store-roles/
+├── StoreDetailsSection
+├── UsedCarsSection
+├── NewCarsSection
+├── LeadManagementSection
+└── TechStackSection
+├── components/
+├── constants/
+├── hooks/
+├── services/
+│   └── storeRolesMapper.ts
+├── types/
+└── ...
