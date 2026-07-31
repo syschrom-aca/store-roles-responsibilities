@@ -221,12 +221,38 @@ export function StoreRolesPage() {
     hasValidPersonRole(values.newCars.pricing),
   ].filter(Boolean).length;
 
+  const usedManagerComplete =
+    values.usedCars.usedManager === false ||
+    (values.usedCars.usedManager === true &&
+      !!values.usedCars.usedManagerName?.trim());
+
+  const merchandiserComplete =
+    values.usedCars.dedicatedMerchandiser === true
+      ? !!values.usedCars.merchandiserName?.trim()
+      : values.usedCars.dedicatedMerchandiser === false
+        ? (values.usedCars.merchandiserRoles ?? []).some(
+            (role) => role.trim() !== ""
+          )
+        : false;
+
+  const usedBuyerComplete =
+    values.usedCars.usedBuyer === true
+      ? !!values.usedCars.usedBuyerName?.trim()
+      : values.usedCars.usedBuyer === false
+        ? (values.usedCars.usedBuyerRoles ?? []).some(
+            (role) => role.trim() !== ""
+          )
+        : false;
+
   const usedCarsAnswered = [
     values.usedCars.usedManager !== undefined,
+    usedManagerComplete,
     values.usedCars.dedicatedMerchandiser !== undefined,
+    merchandiserComplete,
     values.usedCars.usedBuyer !== undefined,
-    hasValidPersonRole(values.usedCars.initialPricing),
-    hasValidPersonRole(values.usedCars.priceChanges),
+    usedBuyerComplete,
+    hasValidPersonRole(values.usedCars.initialPricing) &&
+      hasValidPersonRole(values.usedCars.priceChanges),
   ].filter(Boolean).length;
 
   const totalAnswered =
@@ -243,42 +269,64 @@ export function StoreRolesPage() {
 
   if (submitted) {
     return (
-      <div className="mx-auto max-w-4xl rounded-lg bg-white p-12 text-center shadow">
-        <div className="mb-6 text-7xl text-green-600">
-          ✓
+      <div className="mx-auto max-w-4xl rounded-lg bg-white p-8 shadow">
+        <div className="mb-8">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Submitted
+            </span>
+
+            <span className="text-sm font-bold text-red-600">
+              100%
+            </span>
+          </div>
+
+          <div className="h-2 overflow-hidden rounded-full bg-slate-200">
+            <div className="h-full w-full rounded-full bg-red-600" />
+          </div>
         </div>
 
-        <h2 className="text-3xl font-bold text-slate-900">
-          Report submitted
-        </h2>
+        <div className="text-center">
+          <div className="mb-6 flex justify-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+              <span className="text-4xl text-green-600">
+                ✓
+              </span>
+            </div>
+          </div>
 
-        <p className="mt-3 text-slate-600">
-          Thank you for completing the survey.
-        </p>
+          <h2 className="text-3xl font-bold text-slate-900">
+            Report submitted
+          </h2>
 
-        <p className="mt-6 text-sm text-slate-500">
-          Submitted on {submittedAt}
-        </p>
+          <p className="mt-3 text-slate-600">
+            Thank you for completing the survey.
+          </p>
 
-        <div className="mt-8">
-          <Button
-            variant="primary"
-            onClick={() => {
-              form.reset();
-              setSubmitted(false);
-              setSubmittedAt("");
-              setActiveSection("store-details");
-              setVisitedSections(["store-details"]);
-              setShowNewCarsErrors(false);
-              setShowUsedCarsErrors(false);
-            }}
-          >
-            Submit another response
-          </Button>
+          <p className="mt-6 text-sm text-slate-500">
+            Submitted on {submittedAt}
+          </p>
+
+          <div className="mt-8">
+            <Button
+              variant="primary"
+              onClick={() => {
+                form.reset();
+                setSubmitted(false);
+                setSubmittedAt("");
+                setActiveSection("store-details");
+                setVisitedSections(["store-details"]);
+                setShowNewCarsErrors(false);
+                setShowUsedCarsErrors(false);
+              }}
+            >
+              Submit another response
+            </Button>
+          </div>
         </div>
       </div>
     );
-  }
+  }    
 
   return (
     <div className="mx-auto max-w-6xl rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
