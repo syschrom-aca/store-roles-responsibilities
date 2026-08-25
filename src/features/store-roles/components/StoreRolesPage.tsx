@@ -332,7 +332,17 @@ export function StoreRolesPage() {
   return (
     <div className="mx-auto max-w-6xl rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
 
-      <div className="flex items-center justify-between">
+      <div className="mb-2 flex justify-center sm:hidden">
+        <Image
+          src="/autocanada-icon.png"
+          alt="AutoCanada"
+          width={32}
+          height={32}
+          priority
+        />
+      </div>
+
+      <div className="flex items-start justify-between">
         <div>
           <h2 className="text-2xl font-semibold text-slate-900">
             Store Roles &amp; Responsibilities
@@ -343,7 +353,7 @@ export function StoreRolesPage() {
           </p>
         </div>
 
-        <div className="hidden sm:block -mt-5">
+        <div className="hidden sm:block">
           <Image
             src="/autocanada-logo.png"
             alt="AutoCanada"
