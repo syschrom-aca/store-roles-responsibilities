@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import Image from "next/image";
 import { StoreDetailsSection } from "./StoreDetailsSection";
 import { UsedCarsSection } from "./UsedCarsSection";
 import { NewCarsSection } from "./NewCarsSection";
@@ -330,13 +331,28 @@ export function StoreRolesPage() {
 
   return (
     <div className="mx-auto max-w-6xl rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-      <h2 className="text-2xl font-semibold text-slate-900">
-        Store Roles & Responsibilities
-      </h2>
 
-      <p className="mt-2 text-slate-600">
-        Store accountability survey
-      </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold text-slate-900">
+            Store Roles &amp; Responsibilities
+          </h2>
+
+          <p className="mt-2 text-slate-600">
+            Store accountability survey
+          </p>
+        </div>
+
+        <div className="hidden sm:block -mt-5">
+          <Image
+            src="/autocanada-logo.png"
+            alt="AutoCanada"
+            width={210}
+            height={32}
+            priority
+          />
+        </div>
+      </div>
 
       <FormStepper
         activeSection={activeSection}
