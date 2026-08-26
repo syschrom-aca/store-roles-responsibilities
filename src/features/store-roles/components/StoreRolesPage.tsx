@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-
+import { useEffect, useState } from "react";
 import Image from "next/image";
+
 import { StoreDetailsSection } from "./StoreDetailsSection";
 import { UsedCarsSection } from "./UsedCarsSection";
 import { NewCarsSection } from "./NewCarsSection";
@@ -12,7 +12,10 @@ import { FormStepper } from "./FormStepper";
 
 import { useStoreRolesForm } from "../hooks/useStoreRolesForm";
 import { mapStoreRolesFormToPayload } from "../services/storeRolesMapper";
-import { submitStoreRoles } from "../services/storeRolesApi";
+import {
+  submitStoreRoles,
+  getAuthenticatedEmail,
+} from "../services/storeRolesApi";
 
 import { StoreRolesForm } from "../types/storeRoles";
 import {
@@ -24,9 +27,11 @@ import { Button } from "@/src/components/ui/Button";
 
 export function StoreRolesPage() {
   const form = useStoreRolesForm();
-
   const [submitted, setSubmitted] = useState(false);
   const [submittedAt, setSubmittedAt] = useState<string>("");
+  const [userEmail, setUserEmail] = useState<string | null>(
+    null
+  );
   const [activeSection, setActiveSection] =
     useState<FormSection>("store-details");
   const [visitedSections, setVisitedSections] = useState<
@@ -36,6 +41,10 @@ export function StoreRolesPage() {
     useState(false);
   const [showUsedCarsErrors, setShowUsedCarsErrors] =
     useState(false);
+
+  useEffect(() => {
+    getAuthenticatedEmail().then(setUserEmail);
+  }, []);
 
   const hasValidPersonRole = (
     items?: Array<{ name: string; role: string }>
@@ -60,12 +69,10 @@ export function StoreRolesPage() {
         "storeDetails.submitter",
         "storeDetails.role",
       ]);
-
       if (!isValid) {
         return false;
       }
     }
-
     window.scrollTo({ top: 0, behavior: "smooth" });
     setActiveSection(section);
     return true;
@@ -75,7 +82,6 @@ export function StoreRolesPage() {
     if (activeSection === "store-details") {
       const moved = await goToSection("used-cars");
       if (!moved) return;
-
       setVisitedSections((prev) =>
         prev.includes("used-cars")
           ? prev
@@ -83,7 +89,6 @@ export function StoreRolesPage() {
       );
       return;
     }
-
     if (activeSection === "used-cars") {
       const usedManager = form.getValues(
         "usedCars.usedManager"
@@ -115,7 +120,6 @@ export function StoreRolesPage() {
       const priceChanges = form.getValues(
         "usedCars.priceChanges"
       );
-
       const isValid =
         (usedManager === true
           ? hasAnyText(usedManagerName)
@@ -132,18 +136,14 @@ export function StoreRolesPage() {
             : false) &&
         hasValidPersonRole(initialPricing) &&
         hasValidPersonRole(priceChanges);
-
       if (!isValid) {
         setShowUsedCarsErrors(true);
         return;
       }
-
       setShowUsedCarsErrors(false);
       setShowNewCarsErrors(false);
-
       const moved = await goToSection("new-cars");
       if (!moved) return;
-
       setVisitedSections((prev) =>
         prev.includes("new-cars")
           ? prev
@@ -151,7 +151,6 @@ export function StoreRolesPage() {
       );
       return;
     }
-
     if (activeSection === "new-cars") {
       const hasOrdering = hasValidPersonRole(
         form.getValues("newCars.ordering")
@@ -159,17 +158,13 @@ export function StoreRolesPage() {
       const hasPricing = hasValidPersonRole(
         form.getValues("newCars.pricing")
       );
-
       if (!hasOrdering || !hasPricing) {
         setShowNewCarsErrors(true);
         return;
       }
-
       setShowNewCarsErrors(false);
-
       const moved = await goToSection("lead-management");
       if (!moved) return;
-
       setVisitedSections((prev) =>
         prev.includes("lead-management")
           ? prev
@@ -195,38 +190,35 @@ export function StoreRolesPage() {
   };
 
   const handleSubmit = async (data: StoreRolesForm) => {
-    const payload = mapStoreRolesFormToPayload(data);
+    const payload = mapStoreRolesFormToPayload(
+      data,
+      userEmail
+    );
     const result = await submitStoreRoles(payload);
     console.log(result);
-
     setSubmitted(true);
     setSubmittedAt(new Date().toLocaleString());
   };
 
   const values = form.watch();
-
   const storeDetailsAnswered = [
     values.storeDetails.storeName,
     values.storeDetails.submitter,
     values.storeDetails.role,
   ].filter(Boolean).length;
-
   const leadManagementAnswered = [
     values.leadManagement.leadDistribution,
     values.leadManagement.newPaymentPresentation,
     values.leadManagement.usedPaymentPresentation,
   ].filter(Boolean).length;
-
   const newCarsAnswered = [
     hasValidPersonRole(values.newCars.ordering),
     hasValidPersonRole(values.newCars.pricing),
   ].filter(Boolean).length;
-
   const usedManagerComplete =
     values.usedCars.usedManager === false ||
     (values.usedCars.usedManager === true &&
       !!values.usedCars.usedManagerName?.trim());
-
   const merchandiserComplete =
     values.usedCars.dedicatedMerchandiser === true
       ? !!values.usedCars.merchandiserName?.trim()
@@ -235,7 +227,6 @@ export function StoreRolesPage() {
             (role) => role.trim() !== ""
           )
         : false;
-
   const usedBuyerComplete =
     values.usedCars.usedBuyer === true
       ? !!values.usedCars.usedBuyerName?.trim()
@@ -244,7 +235,6 @@ export function StoreRolesPage() {
             (role) => role.trim() !== ""
           )
         : false;
-
   const usedCarsAnswered = [
     values.usedCars.usedManager !== undefined,
     usedManagerComplete,
@@ -255,15 +245,12 @@ export function StoreRolesPage() {
     hasValidPersonRole(values.usedCars.initialPricing) &&
       hasValidPersonRole(values.usedCars.priceChanges),
   ].filter(Boolean).length;
-
   const totalAnswered =
     storeDetailsAnswered +
     usedCarsAnswered +
     newCarsAnswered +
     leadManagementAnswered;
-
   const totalRequired = 3 + 7 + 2 + 3;
-
   const sectionNumber =
     SECTION_ORDER.indexOf(activeSection) + 1;
   const totalSections = SECTION_ORDER.length;
@@ -276,17 +263,14 @@ export function StoreRolesPage() {
             <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Submitted
             </span>
-
             <span className="text-sm font-bold text-red-600">
               100%
             </span>
           </div>
-
           <div className="h-2 overflow-hidden rounded-full bg-slate-200">
             <div className="h-full w-full rounded-full bg-red-600" />
           </div>
         </div>
-
         <div className="text-center">
           <div className="mb-6 flex justify-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
@@ -295,19 +279,15 @@ export function StoreRolesPage() {
               </span>
             </div>
           </div>
-
           <h2 className="text-3xl font-bold text-slate-900">
             Report submitted
           </h2>
-
           <p className="mt-3 text-slate-600">
             Thank you for completing the survey.
           </p>
-
           <p className="mt-6 text-sm text-slate-500">
             Submitted on {submittedAt}
           </p>
-
           <div className="mt-8">
             <Button
               variant="primary"
@@ -327,11 +307,10 @@ export function StoreRolesPage() {
         </div>
       </div>
     );
-  }    
+  }
 
   return (
     <div className="mx-auto max-w-6xl rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-
       <div className="mb-2 flex justify-center sm:hidden">
         <Image
           src="/autocanada-icon.png"
@@ -341,18 +320,15 @@ export function StoreRolesPage() {
           priority
         />
       </div>
-
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-2xl font-semibold text-slate-900">
             Store Roles &amp; Responsibilities
           </h2>
-
           <p className="mt-2 text-slate-600">
             Store accountability survey
           </p>
         </div>
-
         <div className="hidden sm:block">
           <Image
             src="/autocanada-logo.png"
@@ -363,7 +339,6 @@ export function StoreRolesPage() {
           />
         </div>
       </div>
-
       <FormStepper
         activeSection={activeSection}
         storeDetailsAnswered={storeDetailsAnswered}
@@ -375,12 +350,10 @@ export function StoreRolesPage() {
           void goToSection(section);
         }}
       />
-
       <FormProgress
         answered={totalAnswered}
         total={totalRequired}
       />
-
       <form
         onSubmit={(event) => {
           event.preventDefault();
@@ -392,25 +365,21 @@ export function StoreRolesPage() {
         {activeSection === "store-details" && (
           <StoreDetailsSection form={form} />
         )}
-
         {activeSection === "used-cars" && (
           <UsedCarsSection
             form={form}
             showValidation={showUsedCarsErrors}
           />
         )}
-
         {activeSection === "new-cars" && (
           <NewCarsSection
             form={form}
             showValidation={showNewCarsErrors}
           />
         )}
-
         {activeSection === "lead-management" && (
           <LeadManagementSection form={form} />
         )}
-
         <div className="mt-8 flex items-center justify-between border-t border-slate-200 pt-6">
           <div>
             {activeSection !== "store-details" && (
@@ -423,11 +392,9 @@ export function StoreRolesPage() {
               </Button>
             )}
           </div>
-
           <div className="text-sm text-slate-500">
             Section {sectionNumber} of {totalSections}
           </div>
-
           <div>
             {activeSection !== "lead-management" ? (
               <Button
